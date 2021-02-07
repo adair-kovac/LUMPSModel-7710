@@ -9,6 +9,11 @@ vancouver = Location(49.25, 123.1, "US/Pacific")
 
 class TestSolarRadiation(unittest.TestCase):
 
+    def test_flux_zero_at_night(self):
+        date_time = make_date_time(hour=0)
+        flux = calc.calc_radiation_flux(date_time, vancouver)
+        self.assertAlmostEqual(flux, 0)
+
     def test_solar_declination(self):
         date_time = datetime.date(2021, 3, 5)
         solar_declination = calc.get_solar_declination_angle(date_time.timetuple())

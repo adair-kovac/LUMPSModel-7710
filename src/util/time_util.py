@@ -3,9 +3,7 @@ import datetime
 import pytz
 
 
-def make_date_time(month, day, hour, timezone):
-    naive_time = datetime.time(hour, 0)
-    date = datetime.date(2021, month, day)
-    naive_datetime = datetime.datetime.combine(date, naive_time)
-    timezone = pytz.timezone(timezone)
-    return timezone.localize(naive_datetime)
+def make_date_time(month=7, day=1, hour=0, timezone="US/Mountain", year=2021):
+    date_time = datetime.datetime(year=year, month=month, day=day, hour=hour)
+    date_time = pytz.timezone(timezone).localize(date_time, is_dst=None)
+    return date_time

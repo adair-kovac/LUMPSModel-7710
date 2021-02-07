@@ -21,9 +21,11 @@ def get_radiation_variables(date_time, location, slope_angle=0, slope_azimuth=0,
 
     longitude = math.radians(location.longitude)
     latitude = math.radians(location.latitude)
+    slope_angle = math.radians(slope_angle)
+    slope_azimuth = math.radians(slope_azimuth)
     struct_time = date_time.utctimetuple()
 
-    hour_fraction = get_fractional_hour_of_day(struct_time)
+    hour_fraction = get_hour_float(struct_time)
     radiation_variables["hour_fraction"] = hour_fraction
 
     solar_declination = get_solar_declination_angle(struct_time)
@@ -35,8 +37,11 @@ def get_radiation_variables(date_time, location, slope_angle=0, slope_azimuth=0,
     zenith_angle = to_zenith_angle(elevation_angle)
     radiation_variables["zenith_angle"] = zenith_angle
 
+    local_solar_time = get_local_apparent_solar_time(hour_fraction, longitude)
+    radiation_variables["local_solar_time"] = local_solar_time
+
     solar_azimuth = get_solar_azimuth_angle(latitude, solar_declination, zenith_angle,
-                                            check_is_after_solar_noon(hour_fraction, longitude))
+                                            local_solar_time)
     radiation_variables["solar_azimuth"] = solar_azimuth
 
     angle_of_incidence = get_angle_of_incidence_of_solar_radiation(slope_angle, slope_azimuth, solar_azimuth,
@@ -55,6 +60,8 @@ def get_radiation_variables(date_time, location, slope_angle=0, slope_azimuth=0,
 
 
 def get_flux_at_angle(perpendicular_flux, angle_of_incidence):
+    if cos(angle_of_incidence) < 0:
+        return 0
     return perpendicular_flux * cos(angle_of_incidence)
 
 
@@ -68,19 +75,23 @@ def get_transmissivity(clouds, elevation_angle):
 
 
 def get_angle_of_incidence_of_solar_radiation(slope_angle, slope_azimuth, solar_azimuth, zenith_angle):
+    if cos(zenith_angle) < 0:
+        return zenith_angle
     return acos(
         cos(slope_angle) * cos(zenith_angle) +
         sin(slope_angle) * sin(zenith_angle) * cos(solar_azimuth - slope_azimuth))
 
 
-def check_is_after_solar_noon(hour_fraction, longitude):
-    local_solar_time = hour_fraction + longitude/C*24
-    return local_solar_time > 12
+def get_local_apparent_solar_time(hour_fraction, longitude):
+    local_solar_time = (hour_fraction - longitude/C*24) #todo needs an equation of time correction
+    return local_solar_time
 
 
-def get_solar_azimuth_angle(latitude, solar_declination, zenith_angle, is_after_solar_noon):
-    alpha = acos((sin(solar_declination) - sin(latitude) * cos(zenith_angle)) / (cos(latitude) * sin(zenith_angle)))
-    if is_after_solar_noon:
+def get_solar_azimuth_angle(latitude, solar_declination, zenith_angle, local_apparent_solar_time):
+    h = C/24 * (12-local_apparent_solar_time)
+    alpha = acos((sin(solar_declination) * cos(latitude) -
+                  cos(solar_declination) * sin(latitude)) * cos(h) / sin(zenith_angle))
+    if local_apparent_solar_time > 12:
         alpha = C - alpha
     return alpha
 
@@ -108,5 +119,5 @@ def get_julian_day(struct_time):
     return struct_time.tm_yday
 
 
-def get_fractional_hour_of_day(struct_time):
+def get_hour_float(struct_time):
     return struct_time.tm_hour + struct_time.tm_min / 60.
