@@ -89,8 +89,13 @@ def get_local_apparent_solar_time(hour_fraction, longitude):
 
 def get_solar_azimuth_angle(latitude, solar_declination, zenith_angle, local_apparent_solar_time):
     h = C/24 * (12-local_apparent_solar_time)
-    alpha = acos((sin(solar_declination) * cos(latitude) -
-                  cos(solar_declination) * sin(latitude)) * cos(h) / sin(zenith_angle))
+    cos_alpha = (sin(solar_declination) * cos(latitude) -
+                  cos(solar_declination) * sin(latitude)) * cos(h) / sin(zenith_angle)
+    if cos_alpha > 1:
+        cos_alpha = 1
+    if cos_alpha < -1:
+        cos_alpha = -1
+    alpha = acos(cos_alpha)
     if local_apparent_solar_time > 12:
         alpha = C - alpha
     return alpha
