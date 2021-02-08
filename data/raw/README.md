@@ -2,7 +2,7 @@
 
 ## Dugway Solar Radiation Data 
 
-Filename: solar071901.dat
+Filename: dugway.dat
 
 Source: https://my.mech.utah.edu/~pardyjak/efd/solar071901.dat
 
