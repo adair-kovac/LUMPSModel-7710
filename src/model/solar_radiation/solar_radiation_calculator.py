@@ -1,4 +1,3 @@
-from datetime import datetime
 import math
 from math import cos, sin, acos, asin
 from collections import namedtuple
@@ -6,11 +5,14 @@ from collections import namedtuple
 C = 2 * math.pi  # radians in a circle
 S_0 = 1366  # W/m^2, solar "constant"
 
+# percentage cloud cover at each layer
 Clouds = namedtuple("CloudCoverage", ["high", "medium", "low"])
-# longitude is positive for west coordinates for some reason
+
+# longitude is positive for west coordinates for this application
 Location = namedtuple("Location", ["latitude", "longitude", "timezone"])
 
 
+# Returns R_s down
 def calc_radiation_flux(date_time, location, slope_angle=0, slope_azimuth=0, clouds=Clouds(0,0,0), albedo=0):
     radiation_variables = get_radiation_variables(date_time, location, slope_angle, slope_azimuth, clouds, albedo)
     return radiation_variables["flux"]
@@ -23,7 +25,7 @@ def get_radiation_variables(date_time, location, slope_angle=0, slope_azimuth=0,
     latitude = math.radians(location.latitude)
     slope_angle = math.radians(slope_angle)
     slope_azimuth = math.radians(slope_azimuth)
-    struct_time = date_time.utctimetuple()
+    struct_time = get_utc_timetuple(date_time)
 
     hour_fraction = get_hour_float(struct_time)
     radiation_variables["hour_fraction"] = hour_fraction
@@ -59,6 +61,15 @@ def get_radiation_variables(date_time, location, slope_angle=0, slope_azimuth=0,
     return radiation_variables
 
 
+def get_utc_timetuple(date_time):
+    # Workaround for Pandas issue 32174
+    # https://github.com/pandas-dev/pandas/issues/32174
+    import pandas
+    if type(date_time) == pandas.Timestamp:
+        date_time = date_time.to_pydatetime()
+    return date_time.utctimetuple()
+
+
 def get_flux_at_angle(perpendicular_flux, angle_of_incidence):
     if cos(angle_of_incidence) < 0:
         return 0
@@ -83,7 +94,7 @@ def get_angle_of_incidence_of_solar_radiation(slope_angle, slope_azimuth, solar_
 
 
 def get_local_apparent_solar_time(hour_fraction, longitude):
-    local_solar_time = (hour_fraction - longitude/C*24) #todo needs an equation of time correction
+    local_solar_time = (hour_fraction - longitude/C*24)  # technically needs an equation of time correction
     return local_solar_time
 
 
@@ -111,15 +122,12 @@ def get_elevation_angle(hour_fraction, latitude, longitude, solar_declination):
         cos(latitude) * cos(solar_declination) * cos(C * hour_fraction / 24 - longitude))
 
 
-def degrees_to_radians(degrees):
-    return C * degrees / 360.
-
-
 def get_solar_declination_angle(struct_time):
     julian_day = get_julian_day(struct_time)
     return .409*cos(C * (julian_day - 173) / 365)
 
 
+# Python calls this the yearday, some sources use day of year, but Stull calls it the Julian day
 def get_julian_day(struct_time):
     return struct_time.tm_yday
 

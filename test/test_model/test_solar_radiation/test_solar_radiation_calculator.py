@@ -42,6 +42,12 @@ class TestSolarRadiation(unittest.TestCase):
         angle = calc.get_angle_of_incidence_of_solar_radiation(0, 0, math.radians(20), zenith_angle)
         self.assertAlmostEqual(angle, zenith_angle)
 
+    def test_lannemezan_local_apparent_solar_time(self):
+        lannemezan = Location(43, -21, "Europe/Paris")
+        date_time = make_date_time(month=6, day=25, hour=12, year=2011, timezone=lannemezan.timezone)
+        radiation_variables = calc.get_radiation_variables(date_time, lannemezan)
+        self.assertAlmostEqual(radiation_variables["local_solar_time"], 11 + 21/60, places=0)
+
 
 if __name__ == '__main__':
     unittest.main()
