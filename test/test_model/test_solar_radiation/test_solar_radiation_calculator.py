@@ -43,10 +43,10 @@ class TestSolarRadiation(unittest.TestCase):
         self.assertAlmostEqual(angle, zenith_angle)
 
     def test_lannemezan_local_apparent_solar_time(self):
-        lannemezan = Location(43, -21, "Europe/Paris")
+        lannemezan = Location(43 + 6/60 + 32.9/360, -21/60 - 32.1/360, "Europe/Paris")
         date_time = make_date_time(month=6, day=25, hour=12, year=2011, timezone=lannemezan.timezone)
         radiation_variables = calc.get_radiation_variables(date_time, lannemezan)
-        self.assertAlmostEqual(radiation_variables["local_solar_time"], 11 + 21/60, places=0)
+        self.assertAlmostEqual(radiation_variables["local_solar_time"], 9 + 59/60, places=0)
 
 
 if __name__ == '__main__':
