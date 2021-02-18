@@ -18,7 +18,7 @@ Desc from assignment: These data were acquired above a European Larch forest on 
 
 ## LUMPS Data Set
 
-Filename: AUG_20_handout.txt
+Filename: murray_weather.txt
 
 Source: https://my.mech.utah.edu/~pardyjak/efd/AUG_20_handout.txt
 
@@ -29,7 +29,7 @@ Desc from assignment: LUMPS Data set for August 20, 2005 at the Murray site.
 
 ## MSI01 Solar Data
 
-Filename: MSI01.csv
+Filename: murray_solar.csv
 
 Source: https://mesowest.utah.edu/cgi-bin/droman/download_api2.cgi?stn=MSI01&year1=2005&day1=20&month1=08&hour1=&timetype=LOCAL&unit=0
 
