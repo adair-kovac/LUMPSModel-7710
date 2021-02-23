@@ -31,7 +31,7 @@ Desc from assignment: LUMPS Data set for August 20, 2005 at the Murray site.
 
 Filename: murray_solar.csv
 
-Source: https://mesowest.utah.edu/cgi-bin/droman/download_api2.cgi?stn=MSI01&year1=2005&day1=20&month1=08&hour1=&timetype=LOCAL&unit=0
+Source: https://mesowest.utah.edu/cgi-bin/droman/download_api2.cgi?stn=MSI01&year1=2005&day1=21&month1=08&hour1=&timetype=LOCAL&unit=0
 
 Desc from assignment: To drive the model, you should use real solar radiation data acquired from Mesowest from August 20, 2005. You may consider using the [MSI01](http://mesowest.utah.edu/cgi-bin/droman/meso_base.cgi?product=&past=1&stn=MSI01&unit=0&time=LOCAL&day1=20&month1=08&year1=2005&hour1=24) site August 20, 2005. This site was located at Sugarhouse Park 40.7233 N, -111.8591 W on that date.
 

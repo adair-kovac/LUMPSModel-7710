@@ -10,7 +10,7 @@ def calculate_storage_heat_flux(materials, net_forcing, d_net_forcing_d_t=None, 
     each Q* given) or the time of each Q* observation.
 
     :param materials: Description of each material. Columns should be:
-        "fraction" - float, the coverage fraction. Doesn't have to sum to 1.
+        "Fraction" - float, the coverage fraction. Doesn't have to sum to 1.
         "a1" - coefficient of Q_* term
         "a2" - coefficient of d_Q_* term
         "a3" - coefficient of constant term
@@ -25,7 +25,7 @@ def calculate_storage_heat_flux(materials, net_forcing, d_net_forcing_d_t=None, 
     :rtype: np.array
     """
 
-    if not time and not d_net_forcing_d_t:
+    if time is None and d_net_forcing_d_t is None:
         raise ex.InvalidArgumentError("Must provide either time or d_net_forcing_d_t")
 
     if not d_net_forcing_d_t:
@@ -46,24 +46,24 @@ def estimate_storage(net_forcing, d_net_forcing_d_t, materials):
     :param materials: materials dataframe from calculate_storage_heat_flux
     :type materials: pd.DataFrame
     """
-    normalization_factor = materials["fraction"].sum()
+    normalization_factor = materials["Fraction"].sum()
     # We don't want to assume the fractions add up to 1 since the material type of the whole area might not be known
 
-    weight = materials["fraction"]/normalization_factor
+    weight = materials["Fraction"]/normalization_factor
     components = weight*(materials["a1"]*net_forcing + materials["a2"]*d_net_forcing_d_t + materials["a3"])
 
     return components.sum()
 
 
 def get_rate_of_change(net_forcing, time):
-    array_to_seconds = np.vectorize(to_seconds)
-    time_delta = array_to_seconds(get_delta(time))
+    array_to_hours = np.vectorize(to_hours)
+    time_delta = array_to_hours(get_delta(time))
     forcing_delta = get_delta(net_forcing)
     return forcing_delta/time_delta
 
 
-def to_seconds(time_delta):
-    return time_delta/np.timedelta64(1, 's')
+def to_hours(time_delta):
+    return time_delta/np.timedelta64(1, 'h')
 
 
 def get_delta(array):
@@ -74,6 +74,6 @@ def get_delta(array):
 
 
 def repeat_ends_of_array(array):
-    beginning = array[0:1]
-    end = array[len(array):len(array)+1]
-    return np.concatenate([beginning, array, end])
+    beginning = array.flat[0]
+    end = array.flat[len(array) - 1]
+    return np.hstack([beginning, array, end])
