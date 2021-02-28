@@ -1,0 +1,42 @@
+active_experiment: 2
+
+experiments:
+    1:
+      surface_materials_mapping: 1
+      penman_monteith_params:
+        alpha: 0.473684
+        beta: 10.0
+    1.1:
+      surface_materials_mapping: 1
+      penman_monteith_params:
+        alpha: 0.5
+        beta: 5.0
+    2:
+      surface_materials_mapping: 2
+      penman_monteith_params: auto_tune
+      longwave_model: burridge_gadd
+
+
+surface_materials:
+  coverage_data: "data/processed/surface_coverage.csv"
+  materials_data: "data/processed/surface_materials.csv"
+  mappings:
+    1:
+      Grass: Short grass - Doll
+      Trees: Mixed forest - McCaughey
+      Residential Rooftops: Asphalt/plywood residential roof - Meyn
+      Reflective Rooftops: High-albedo asphalt roof - Meyn
+      Parking Lot: Paved/Impervious - Average
+      Industrial Rooftops: Rooftop 5, 8 - Meyn
+      Bare Soil: Bare soil - Novak
+      Asphalt Road: Asphalt - Narita
+    2:
+      Grass: Short grass - Doll
+      Trees: Mixed forest - McCaughey
+      Residential Rooftops: Asphalt/plywood residential roof - Meyn
+      Reflective Rooftops: High-albedo asphalt roof - Meyn
+      Parking Lot: Paved/Impervious - Average
+      Industrial Rooftops: Rooftop 5, 8 - Meyn
+      Bare Soil: Bare soil - Novak
+      Asphalt Road: Asphalt - Narita
+      Other: Paved/Impervious - Average
