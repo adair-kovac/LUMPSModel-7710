@@ -13,8 +13,7 @@ number = 40
 
 
 def main():
-    file_name = "".join(["nonzero_normalize_error_a_",
-                         str(alpha_range), "_b_", str(beta_range), "_n_", str(number)])
+    file_name = "".join(["error_a_", str(alpha_range), "_b_", str(beta_range), "_n_", str(number)])
     print(file_name)
     errors = get_errors()
     errors.to_csv(file_name)
@@ -82,7 +81,7 @@ Vars = namedtuple("vars", ["mean", "std"])
 
 def get_statistical_vars(column_name):
     data = get_observations()
-    mean = data[data[column_name] != 0][column_name].mean()
+    mean = data[column_name].mean()
     standard_deviation = data[column_name].std()
     return Vars(mean, standard_deviation)
 
