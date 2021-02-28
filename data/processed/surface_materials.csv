@@ -1,9 +1,9 @@
-Surface Type,Fraction,a1,a2,a3,parameter source
-Grass,0.193159,0.32,0.54,-27.4,"Short grass (Doll et al, 1985, OHM)"
-Trees,0.103494,0.11,0.11,-12.3,"Mixed forest (McCaughey, 1985, G&O1999)"
-Residential Rooftops,0.296653,0.14,0.33,-6,"Asphalt shingle–on-plywood residential roof (Meyn 2000, Lumps)"
-Reflective Rooftops,0.003305,0.09,0.18,-1,"High-albedo asphalt shingle residential roof (Meyn 2000, Lumps)"
-Parking Lot,0.00795,0.7,0.33,-38,"Paved/impervious (avg of G&O1999, lumps)"
-Industrial Rooftops,0.017845,0.16,0.45,-9,"Rootop mean of 5,8 (Meyn 2000, LUMPS)"
-Bare Soil,0.041297,0.38,0.56,-27.3,"Bare soil (Novak 1981, OHM)"
-Asphalt Road,0.066485,0.36,0.23,-19.3,"Asphalt (Narita et al 1984, OHM)"
+Material,a1,a2,a3,parameter source
+Short grass - Doll,0.32,0.54,-27.4,"Short grass (Doll et al, 1985, OHM)"
+Mixed forest - McCaughey,0.11,0.11,-12.3,"Mixed forest (McCaughey, 1985, G&O1999)"
+Asphalt/plywood residential roof - Meyn,0.14,0.33,-6,"Asphalt shingle–on-plywood residential roof (Meyn 2000, Lumps)"
+High-albedo asphalt roof - Meyn,0.09,0.18,-1,"High-albedo asphalt shingle residential roof (Meyn 2000, Lumps)"
+Paved/Impervious - Average,0.7,0.33,-38,"Paved/impervious (avg of G&O1999, lumps)"
+"Rooftop 5, 8 - Meyn",0.16,0.45,-9,"Rootop mean of 5,8 (Meyn 2000, LUMPS)"
+Bare soil - Novak,0.38,0.56,-27.3,"Bare soil (Novak 1981, OHM)"
+Asphalt - Narita,0.36,0.23,-19.3,"Asphalt (Narita et al 1984, OHM)"

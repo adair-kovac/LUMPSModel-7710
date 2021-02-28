@@ -8,7 +8,7 @@ class Config:
     experiment_name = None
     penman_monteith_params = None
     longwave_model = None
-    surface_materials = None
+    surface_data = None
 
     def load(self):
         with open("config.yaml") as config:
@@ -19,21 +19,18 @@ class Config:
         experiment = conf["experiments"][self.experiment_name]
 
         self.penman_monteith_params = experiment["penman_monteith_params"]
-        self.load_surface_materials(experiment["surface_materials_mapping"])
+        self.longwave_model = experiment["longwave_model"]
+        self.load_surface_data(experiment["surface_materials_mapping"])
 
-    def load_surface_materials(self, mapping_name):
+    def load_surface_data(self, mapping_name):
+
         sm_conf = self.config["surface_materials"]
-        print(sm_conf)
         coverage = pd.read_csv(get_project_root() / sm_conf["coverage_data"])
         materials = pd.read_csv(get_project_root() / sm_conf["materials_data"])
         mapping = sm_conf["mappings"][mapping_name]
 
-        surface_materials = pd.DataFrame(columns=["Surface Type", "Fraction",
-                                                  "a1", "a2", "a3"])
+        surface_materials = pd.DataFrame(columns=["Surface Type", "Material"])
         for surface, material in mapping.items():
-            idx = len(surface_materials.index)
-            surface_materials.loc[idx] = coverage[coverage["Surface Type"] == surface][0] + materials[""]
+            surface_materials.loc[len(surface_materials.index)] = [surface, material]
 
-
-
-Config().load()
+        return coverage.merge(surface_materials, on="Surface Type").merge(materials, on="Material")
