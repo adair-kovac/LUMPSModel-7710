@@ -6,6 +6,13 @@ L_v = 2.5e6  # J/kg
 R_v = 461  # J/K/kg
 T_0 = 273.15  # K
 e_0 = 6.113  # hPa
+c_p = 1004 #J/K/kg
+epsilon = 0.622 #kg/kg
+
+
+def get_psychrometric_constant(pressure):
+    # We could use a variable c_p depending on moisture content of air, but I don't think we have that info
+    return c_p/L_v * pressure / epsilon
 
 
 def clausius_clapeyron_e_s(T, is_C=True):
@@ -47,5 +54,6 @@ def plot_sat_vapor_pressure_and_slope():
 def finite_difference(series, delta):
     brackets = zip(series[0:-1], series[1:])
     return [(top - bottom)/delta for (bottom, top) in brackets]
+
 
 plot_sat_vapor_pressure_and_slope()

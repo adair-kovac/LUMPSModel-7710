@@ -8,9 +8,7 @@ import model.solar_radiation.solar_radiation_calculator as rad
 import util.time_util as time_util
 
 materials = data_loader.get_surface_data()
-q_tuple = data_loader.get_radiation_data()
-times = q_tuple[0]
-radiative_fluxes = q_tuple[1]
+times, radiative_fluxes = data_loader.get_radiation_data()
 ohm_output = ohm.calculate_storage_heat_flux(materials, radiative_fluxes, time=times)
 
 murray = rad.Location(40.67250, 111.80220, "US/Mountain") # Mountain Daylight Time is UTC+6

@@ -12,3 +12,4 @@ matplotlib
 pandas
 jupyter
 scipy
+seaborn
