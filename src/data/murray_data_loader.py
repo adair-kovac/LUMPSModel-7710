@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import dateutil
-from pathlib import Path
+
+from data.util import get_project_root
 
 albedo = .18
 
@@ -18,7 +19,7 @@ def get_radiation_data():
 
 
 def get_surface_data():
-    data = pd.read_csv(get_project_root() / "data/processed/surface_types.csv", usecols=range(0,5))
+    data = pd.read_csv(get_project_root() / "data/processed/surface_types.csv", usecols=range(0, 5))
     return data
 
 
@@ -37,9 +38,5 @@ def get_energy_balance_data():
     radiation_on_half_hours = [x for index, x in enumerate(radiation_data) if index % 2 == 0][:-1]
     data["net_radiation"] = radiation_on_half_hours
     return data
-
-
-def get_project_root() -> Path:
-    return Path(__file__).parent.parent.parent
 
 
