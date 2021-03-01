@@ -12,6 +12,9 @@ from model.penman_monteith.tuning import learn_parameters
 import model.radiation.longwave_radiation as longwave
 import pytz
 from util.exceptions import ConfigValueNotRecognized
+from model.visualization import styles
+from model.visualization.plot_filters import Save, SetBottomLegend, TimeFormatXAxis
+from model.visualization.line_plot import LinePlot, YData
 
 
 def get_model_output(config):
@@ -51,56 +54,45 @@ def estimate_sensible_and_latent(config, data):
 
 
 def make_lumps_chart(config, model_output):
-    fig, ax = plt.subplots()
     model_ohm, model_rad, model_times, murray = get_modeled_radiation(config)
     data = model_output
-    times = data["time"]
-    ax.plot(model_times, model_rad, 'y', dashes=[5, 2], label="Modeled Net Q_s")
-    ax.plot(times, data["net_solar"], 'y', label="Net Q_s")
-    ax.plot(times, data["storage"], 'r', dashes=[5, 2], label="Storage from Objective Hysteresis")
-    ax.plot(times, data["residual"], 'r', label="Storage from Residual")
-    ax.plot(times, data["sensible_heat"], 'g', label="Observed Sensible Heat")
-    ax.plot(times, data["model_sensible"], 'g', dashes=[5, 2], label="Modeled Sensible Heat")
-    ax.plot(times, data["latent_heat"], 'b', label="Observed Latent Heat")
-    ax.plot(times, data["model_latent"], 'b', dashes=[5, 2], label="Modeled Latent Heat")
-    chart_scale = .30
+
+    x_axis = data["time"]
+    y_data = [
+        YData(model_rad, "Modeled Net Q_s", styles.model.plus(styles.shortwave), x_axis=model_times),
+        YData(data["net_solar"], "Net Q_s", styles.observation.plus(styles.shortwave)),
+        YData(data["storage"], "Storage from Objective Hysteresis", styles.storage.plus(styles.model)),
+        YData(data["residual"], "Storage from Residual", styles.storage.plus(styles.observation)),
+        YData(data["sensible_heat"], "Observed Sensible Heat", styles.sensible.plus(styles.observation)),
+        YData(data["model_sensible"], "Modeled Sensible Heat", styles.sensible.plus(styles.model)),
+        YData(data["latent_heat"], "Observed Latent Heat", styles.latent.plus(styles.observation)),
+        YData(data["model_latent"], "Modeled Latent Heat", styles.latent.plus(styles.model))
+    ]
+
     if config.longwave_model:
-        ax.plot(times, data["longwave"], 'tab:gray', dashes=[5, 2], label="Modeled Longwave Radiation")
-        ax.plot(times, data["net_all_wave"], "tab:orange", dashes=[5, 2], label="All-wave Radiation" )
-      #  chart_scale = .35
+        y_data.extend([
+            YData(data["longwave"], "Modeled Longwave Radiation", styles.longwave.plus(styles.model)),
+            YData(data["net_all_wave"], "All-wave Radiation", styles.allwave.plus(styles.model))
+        ])
 
-    tz = pytz.timezone(murray.timezone)
-    ax.xaxis.set_major_locator(dates.HourLocator(interval=2, tz=tz))
-    ax.xaxis.set_major_formatter(dates.DateFormatter('%H', tz=tz))
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -.1), ncol=2)
-    plt.subplots_adjust(bottom=chart_scale)
+    LinePlot(x_axis, y_data).with_post_filter(
+        TimeFormatXAxis(murray.timezone),
+        SetBottomLegend(),
+        Save(config.output_dir / "full_model.png")
+    ).run()
 
-    fig.savefig(config.output_dir / "full_model.png")
 
 
 def make_hysteresis_charts(config, model_output):
-    # Currently this only works right when longwave radiation is off
     model_ohm, model_rad, model_times, murray = get_modeled_radiation(config)
+    base_radiation = model_output["net_solar"]
+    if config.longwave_model == "burridge_gadd":
+        base_radiation = model_output["net_all_wave"]
+        model_rad = [x + longwave.burridge_gadd_param for x in model_rad]
 
     fig, ax = plt.subplots()
-
-    tz = pytz.timezone(murray.timezone)
-    ax.plot(model_times, model_rad, 'y', dashes=[5, 2], label="Modeled Net Q_s")
-    ax.plot(model_output["time"], model_output["net_radiation"], 'y', label="Net Q_s")
-    ax.plot(model_times, model_ohm, 'r', dashes=[5, 2], label="Storage from Modeled Radiation")
-    ax.plot(model_output["time"], model_output["storage"], 'r', label="Storage from Observed Radiation")
-
-    ax.xaxis.set_major_locator(dates.HourLocator(interval=2, tz=tz))
-    ax.xaxis.set_major_formatter(dates.DateFormatter('%H', tz=tz))
-
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -.1), ncol=2)
-    plt.subplots_adjust(bottom=.20)
-    fig.savefig(config.output_dir / "radiation_over_time.png")
-
-    ax.clear()
-
     ax.scatter(model_rad, model_ohm, label="From modeled radiation")
-    ax.scatter(model_output["net_radiation"], model_output["storage"], label="From observed radiation")
+    ax.scatter(base_radiation, model_output["storage"], label="From observed radiation")
     plt.legend()
     fig.savefig(config.output_dir / "hysteresis.png")
 
