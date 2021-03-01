@@ -1,24 +1,18 @@
 import math
 from math import cos, sin, acos, asin
-from collections import namedtuple
+
+from util.location_util import Clouds
 
 C = 2 * math.pi  # radians in a circle
 S_0 = 1366  # W/m^2, solar "constant"
 
-# percentage cloud cover at each layer
-Clouds = namedtuple("CloudCoverage", ["high", "medium", "low"])
-
-# longitude is positive for west coordinates for this application
-Location = namedtuple("Location", ["latitude", "longitude", "timezone"])
-
-
 # Returns R_s down
-def calc_radiation_flux(date_time, location, slope_angle=0, slope_azimuth=0, clouds=Clouds(0,0,0), albedo=0):
+def calc_radiation_flux(date_time, location, slope_angle=0, slope_azimuth=0, clouds=Clouds(0, 0, 0), albedo=0):
     radiation_variables = get_radiation_variables(date_time, location, slope_angle, slope_azimuth, clouds, albedo)
     return radiation_variables["flux"]
 
 
-def get_radiation_variables(date_time, location, slope_angle=0, slope_azimuth=0, clouds=Clouds(0,0,0), albedo=0):
+def get_radiation_variables(date_time, location, slope_angle=0, slope_azimuth=0, clouds=Clouds(0, 0, 0), albedo=0):
     radiation_variables = dict()
 
     longitude = math.radians(location.longitude)

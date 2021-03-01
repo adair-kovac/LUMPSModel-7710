@@ -1,8 +1,8 @@
-import model.solar_radiation.solar_radiation_calculator as calc
+import model.radiation.solar_radiation_calculator as calc
 import datetime
 import unittest
 import math
-from model.solar_radiation.solar_radiation_calculator import Location
+from util.location_util import Location
 from util.time_util import make_date_time
 
 vancouver = Location(49.25, 123.1, "US/Pacific")

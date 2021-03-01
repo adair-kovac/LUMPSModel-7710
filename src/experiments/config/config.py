@@ -22,13 +22,21 @@ class Config:
 
         experiment = conf["experiments"][self.experiment_name]
 
-        self.penman_monteith_params = experiment["penman_monteith_params"]
+        self.set_penman_monteith_params(experiment)
 
         if "longwave_model" in experiment:
             self.longwave_model = experiment["longwave_model"]
 
         self.load_surface_data(experiment["surface_materials_mapping"])
         return self
+
+    def set_penman_monteith_params(self, experiment):
+        params = experiment["penman_monteith_params"]
+        if params == "auto_tune":
+            self.penman_monteith_params = dict()
+            self.penman_monteith_params["tuning_params"] = experiment["tuning_params"]
+        else:
+            self.penman_monteith_params = params
 
     def load_surface_data(self, mapping_name):
         sm_conf = self.config["surface_materials"]

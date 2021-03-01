@@ -37,6 +37,7 @@ def get_energy_balance_data():
     #This is hacky, would be easier to do a join if it breaks.
     radiation_on_half_hours = [x for index, x in enumerate(radiation_data) if index % 2 == 0][:-1]
     data["net_radiation"] = radiation_on_half_hours
+    data["net_solar"] = radiation_on_half_hours
     return data
 
 

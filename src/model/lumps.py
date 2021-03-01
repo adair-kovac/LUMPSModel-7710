@@ -4,17 +4,33 @@ import data.murray_data_loader as data_loader
 import model.storage.objective_hysteresis_model as ohm
 from matplotlib import pyplot as plt
 import matplotlib.dates as dates
-import model.solar_radiation.solar_radiation_calculator as rad
+import model.radiation.solar_radiation_calculator as rad
+import util.location_util
 import util.time_util as time_util
 import model.penman_monteith.penman_monteith as penman_monteith
+from model.penman_monteith.tuning import learn_parameters
+import model.radiation.longwave_radiation as longwave
 import pytz
+from util.exceptions import ConfigValueNotRecognized
 
 
 def get_model_output(config):
     data = data_loader.get_energy_balance_data()
+    if config.longwave_model:
+        estimate_longwave(config, data)
     estimate_storage(config, data)
     estimate_sensible_and_latent(config, data)
     return data
+
+
+def estimate_longwave(config, data):
+    if config.longwave_model == "burridge_gadd":
+        constant_lwr = longwave.burridge_gadd_parameterization()
+        data["longwave"] = constant_lwr
+    else:
+        raise ConfigValueNotRecognized("Unrecognized longwave radiation model: " + config.longwave_model)
+    data["net_all_wave"] = data["net_radiation"] + data["longwave"]
+    data["net_radiation"] = data["net_all_wave"]
 
 
 def estimate_storage(config, data):
@@ -25,6 +41,8 @@ def estimate_storage(config, data):
 
 
 def estimate_sensible_and_latent(config, data):
+    if "tuning_params" in config.penman_monteith_params:
+        learn_parameters.auto_tune(config)
     for index, row in data.iterrows():
         estimate_sensible, estimate_latent = penman_monteith.sensible_and_latent_heat(
             config, row["net_radiation"], row["storage"], row["temp"], row["pressure"])
@@ -34,29 +52,32 @@ def estimate_sensible_and_latent(config, data):
 
 def make_lumps_chart(config, model_output):
     fig, ax = plot_radiation_and_ohm()
-
+    model_ohm, model_rad, model_times, murray = get_modeled_radiation(config)
     data = model_output
     times = data["time"]
+    ax.plot(model_times, model_rad, 'y', dashes=[5, 2], label="Modeled Net Q_s")
+    ax.plot(times, data["net_solar"], 'y', label="Net Q_s")
     ax.plot(times, data["storage"], 'r', dashes=[5, 2], label="Storage from Objective Hysteresis")
-    ax.plot(times, data["residual"], 'r', label="Storage from Observed Residual")
+    ax.plot(times, data["residual"], 'r', label="Storage from Residual")
     ax.plot(times, data["sensible_heat"], 'g', label="Observed Sensible Heat")
-    ax.plot(times, data["model_sensible"], 'g', dashes=[5, 2], label="Model Sensible Heat")
+    ax.plot(times, data["model_sensible"], 'g', dashes=[5, 2], label="Modeled Sensible Heat")
     ax.plot(times, data["latent_heat"], 'b', label="Observed Latent Heat")
-    ax.plot(times, data["model_latent"], 'b', dashes=[5, 2], label="Model Latent Heat")
+    ax.plot(times, data["model_latent"], 'b', dashes=[5, 2], label="Modeled Latent Heat")
+    chart_scale = .30
+    if config.longwave_model:
+        ax.plot(times, data["longwave"], 'tab:gray', dashes=[5, 2], label="Modeled Longwave Radiation")
+        ax.plot(times, data["net_all_wave"], "tab:orange", dashes=[5, 2], label="All-wave Radiation" )
+        chart_scale = .35
 
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -.1), ncol=2)
-    plt.subplots_adjust(bottom=.30)
+    plt.subplots_adjust(bottom=chart_scale)
 
     fig.savefig(config.output_dir / "full_model.png")
 
 
 def make_hysteresis_charts(config, model_output):
-    # The way this is currently written, it only uses half the available datapoints (because
-    # the passed model_output has already downsampled the radiation data to match the lower
-    # resolution of the weather data).
-    murray = rad.Location(40.67250, 111.80220, "US/Mountain") # Mountain Daylight Time is UTC+6
-    model_rad, model_times = get_model_radiation(murray)
-    model_ohm = ohm.storage_heat_flux(config, np.array(model_rad), time=np.array(model_times))
+    # Currently this only works right when longwave radiation is off
+    model_ohm, model_rad, model_times, murray = get_modeled_radiation(config)
 
     fig, ax = plt.subplots()
 
@@ -79,6 +100,16 @@ def make_hysteresis_charts(config, model_output):
     ax.scatter(model_output["net_radiation"], model_output["storage"], label="From observed radiation")
     plt.legend()
     fig.savefig(config.output_dir / "hysteresis.png")
+
+
+def get_modeled_radiation(config):
+    # The way this is currently written, it only uses half the available datapoints (because
+    # the passed model_output has already downsampled the radiation data to match the lower
+    # resolution of the weather data).
+    murray = util.location_util.Location(40.67250, 111.80220, "US/Mountain")  # Mountain Daylight Time is UTC+6
+    model_rad, model_times = get_model_radiation(murray)
+    model_ohm = ohm.storage_heat_flux(config, np.array(model_rad), time=np.array(model_times))
+    return model_ohm, model_rad, model_times, murray
 
 
 def get_model_radiation(murray):
@@ -133,7 +164,7 @@ def plot_radiation_and_ohm(just_ohm=False):
     times, radiative_fluxes = data_loader.get_radiation_data()
     ohm_output = ohm.calculate_storage_heat_flux(materials, radiative_fluxes, time=times)
 
-    murray = rad.Location(40.67250, 111.80220, "US/Mountain") # Mountain Daylight Time is UTC+6
+    murray = util.location_util.Location(40.67250, 111.80220, "US/Mountain") # Mountain Daylight Time is UTC+6
     hours = range(0, 24)
     minutes = range(0, 60)
     model_times = [pd.Timestamp(

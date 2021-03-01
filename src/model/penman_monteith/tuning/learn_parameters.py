@@ -1,4 +1,5 @@
 import data.murray_data_loader as data_loader
+from data import util
 import model.penman_monteith.penman_monteith as penman_monteith
 import model.storage.objective_hysteresis_model as ohm
 from collections import namedtuple
@@ -7,32 +8,45 @@ import pandas as pd
 import seaborn as seaborn
 import matplotlib.pyplot as plt
 
-alpha_range = (0, 1.5)
-beta_range = (0, 30)
-number = 40
 
-def autotune(config):
+def auto_tune(config):
+    params = config.penman_monteith_params["tuning_params"]
+    alpha_range = (params["alpha"][0], params["alpha"][1])
+    beta_range = (params["beta"][0], params["beta"][1])
+    number = params["number"]
+    file_root = config.output_dir / "pm_autotune"
+    best = optimize(alpha_range, beta_range, number, file_root)
+    config.penman_monteith_params["alpha"] = best["alpha"]
+    config.penman_monteith_params["beta"] = best["beta"]
+    best.to_csv(file_root / "final_params.csv")
 
 
 def main():
+    alpha_range = (0, 1.5)
+    beta_range = (0, 30)
+    number = 40
     file_name = "".join(["error_a_", str(alpha_range), "_b_", str(beta_range), "_n_", str(number)])
+    file_name = util.get_project_root() / "src/model/penman_monteith/tuning" / file_name
     print(file_name)
-    errors = get_errors()
-    errors.to_csv(file_name)
-   # errors = pd.read_csv(file_name, index_col=0)
-    print(errors[errors["error"] == errors["error"].min()])
+    optimize(alpha_range, beta_range, number, file_name)
 
+
+def optimize(alpha_range, beta_range, number, file_root):
+    file_root.mkdir(parents=True, exist_ok=True)
+    errors = get_errors(alpha_range, beta_range, number)
+    errors.to_csv(file_root / "errors.csv")
+    # errors = pd.read_csv(file_root, index_col=0)
+    best = errors[errors["error"] == errors["error"].min()].iloc[0]
+    print(best)
     errors = errors.round(decimals=3)
-    print(errors)
     pivoted = errors.pivot(index="beta", columns="alpha")
-    print(pivoted)
-
     fig, ax = plt.subplots(figsize=(7, 10))
     seaborn.heatmap(pivoted)
-    fig.savefig(file_name + "_heatmap.png")
+    fig.savefig(file_root / "heatmap.png")
+    return best
 
 
-def get_errors():
+def get_errors(alpha_range, beta_range, number):
     alphas = np.linspace(alpha_range[0], alpha_range[1], num=number)
     betas = np.linspace(beta_range[0], beta_range[1], num=number)
     error_matrix = pd.DataFrame(columns=["alpha", "beta", "error"])
