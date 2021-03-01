@@ -11,6 +11,8 @@ alpha_range = (0, 1.5)
 beta_range = (0, 30)
 number = 40
 
+def autotune(config):
+
 
 def main():
     file_name = "".join(["error_a_", str(alpha_range), "_b_", str(beta_range), "_n_", str(number)])

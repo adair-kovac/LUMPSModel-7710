@@ -7,6 +7,94 @@ import matplotlib.dates as dates
 import model.solar_radiation.solar_radiation_calculator as rad
 import util.time_util as time_util
 import model.penman_monteith.penman_monteith as penman_monteith
+import pytz
+
+
+def get_model_output(config):
+    data = data_loader.get_energy_balance_data()
+    estimate_storage(config, data)
+    estimate_sensible_and_latent(config, data)
+    return data
+
+
+def estimate_storage(config, data):
+    radiative_fluxes = data["net_radiation"].to_numpy()
+    times = data["time"].to_numpy()
+    data["storage"] = ohm.storage_heat_flux(config, radiative_fluxes, time=times)
+    data["residual"] = data["net_radiation"] - data["sensible_heat"] - data["latent_heat"]
+
+
+def estimate_sensible_and_latent(config, data):
+    for index, row in data.iterrows():
+        estimate_sensible, estimate_latent = penman_monteith.sensible_and_latent_heat(
+            config, row["net_radiation"], row["storage"], row["temp"], row["pressure"])
+        data.at[index, "model_sensible"] = estimate_sensible
+        data.at[index, "model_latent"] = estimate_latent
+
+
+def make_lumps_chart(config, model_output):
+    fig, ax = plot_radiation_and_ohm()
+
+    data = model_output
+    times = data["time"]
+    ax.plot(times, data["storage"], 'r', dashes=[5, 2], label="Storage from Objective Hysteresis")
+    ax.plot(times, data["residual"], 'r', label="Storage from Observed Residual")
+    ax.plot(times, data["sensible_heat"], 'g', label="Observed Sensible Heat")
+    ax.plot(times, data["model_sensible"], 'g', dashes=[5, 2], label="Model Sensible Heat")
+    ax.plot(times, data["latent_heat"], 'b', label="Observed Latent Heat")
+    ax.plot(times, data["model_latent"], 'b', dashes=[5, 2], label="Model Latent Heat")
+
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -.1), ncol=2)
+    plt.subplots_adjust(bottom=.30)
+
+    fig.savefig(config.output_dir / "full_model.png")
+
+
+def make_hysteresis_charts(config, model_output):
+    # The way this is currently written, it only uses half the available datapoints (because
+    # the passed model_output has already downsampled the radiation data to match the lower
+    # resolution of the weather data).
+    murray = rad.Location(40.67250, 111.80220, "US/Mountain") # Mountain Daylight Time is UTC+6
+    model_rad, model_times = get_model_radiation(murray)
+    model_ohm = ohm.storage_heat_flux(config, np.array(model_rad), time=np.array(model_times))
+
+    fig, ax = plt.subplots()
+
+    tz = pytz.timezone(murray.timezone)
+    ax.plot(model_times, model_rad, 'y', dashes=[5, 2], label="Modeled Net Q_s")
+    ax.plot(model_output["time"], model_output["net_radiation"], 'y', label="Net Q_s")
+    ax.plot(model_times, model_ohm, 'r', dashes=[5, 2], label="Storage from Modeled Radiation")
+    ax.plot(model_output["time"], model_output["storage"], 'r', label="Storage from Observed Radiation")
+
+    ax.xaxis.set_major_locator(dates.HourLocator(interval=2, tz=tz))
+    ax.xaxis.set_major_formatter(dates.DateFormatter('%H', tz=tz))
+
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -.1), ncol=2)
+    plt.subplots_adjust(bottom=.20)
+    fig.savefig(config.output_dir / "radiation_over_time.png")
+
+    ax.clear()
+
+    ax.scatter(model_rad, model_ohm, label="From modeled radiation")
+    ax.scatter(model_output["net_radiation"], model_output["storage"], label="From observed radiation")
+    plt.legend()
+    fig.savefig(config.output_dir / "hysteresis.png")
+
+
+def get_model_radiation(murray):
+    model_times = make_day_time_series(murray)
+    model_rad = [rad.calc_radiation_flux(date_time, murray, albedo=data_loader.albedo) for date_time in model_times]
+    return model_rad, model_times
+
+
+def make_day_time_series(location):
+    hours = range(0, 24)
+    minutes = range(0, 60)
+    model_times = [pd.Timestamp(
+        time_util.make_date_time(year=2005, month=8, day=20, hour=hour, minute=minute, timezone=location.timezone))
+        for hour in hours
+        for minute in minutes]
+    return model_times
 
 
 def main():
@@ -81,6 +169,7 @@ def plot_radiation_and_ohm(just_ohm=False):
         fig.savefig("hysteresis.png")
 
     return fig, ax
+
 
 if __name__ == "__main__":
     main()

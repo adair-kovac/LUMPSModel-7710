@@ -1,4 +1,5 @@
-active_experiment: 2
+active_experiment: 1.1
+output_root_dir: src/experiments/results # The experiment identifier will be a subdir
 
 experiments:
     1:
@@ -6,15 +7,29 @@ experiments:
       penman_monteith_params:
         alpha: 0.473684
         beta: 10.0
+
     1.1:
       surface_materials_mapping: 1
       penman_monteith_params:
         alpha: 0.5
         beta: 5.0
-    2:
+
+    2 - autotune:
       surface_materials_mapping: 2
       penman_monteith_params: auto_tune
-      longwave_model: burridge_gadd
+      tuning_params:
+        alpha: [0, 1.5]
+        beta: [0, 30]
+        number: 25
+
+    3 - longwave:
+      surface_materials_mapping: 2
+      penman_monteith_params: auto_tune
+      tuning_params:
+        alpha: [0, 1.5]
+        beta: [0, 30]
+        number: 25
+      longwave_model: burridge_gadd # not implemented yet
 
 
 surface_materials:

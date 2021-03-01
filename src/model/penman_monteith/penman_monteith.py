@@ -1,6 +1,13 @@
 import model.penman_monteith.moisture_variables as moisture_vars
 
 
+def sensible_and_latent_heat(config, net_radiation, heat_storage, temp, pressure):
+    params = config.penman_monteith_params
+    alpha = params["alpha"]
+    beta = params["beta"]
+    return calc_sensible_and_latent_heat(alpha, beta, net_radiation, heat_storage, temp, pressure)
+
+
 def calc_sensible_and_latent_heat(alpha, beta, net_radiation, heat_storage, temp, pressure):
     gamma = moisture_vars.get_psychrometric_constant(pressure)
     delta = moisture_vars.slope_e_s(temp)

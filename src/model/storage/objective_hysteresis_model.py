@@ -3,6 +3,11 @@ import numpy as np
 import util.exceptions as ex
 
 
+def storage_heat_flux(config, net_forcing, d_net_forcing_d_t=None, time=None):
+    materials = config.surface_data
+    return calculate_storage_heat_flux(materials, net_forcing, d_net_forcing_d_t=d_net_forcing_d_t, time=time)
+
+
 def calculate_storage_heat_flux(materials, net_forcing, d_net_forcing_d_t=None, time=None):
     """
     Estimates the heat storage term of the surface energy balance equation as a partition of Q* (net shortwave and
@@ -51,8 +56,8 @@ def estimate_storage(net_forcing, d_net_forcing_d_t, materials):
 
     weight = materials["Fraction"]/normalization_factor
     components = weight*(materials["a1"]*net_forcing + materials["a2"]*d_net_forcing_d_t + materials["a3"])
-
-    return components.sum()
+    estimate = components.sum()
+    return estimate
 
 
 def get_rate_of_change(net_forcing, time):
