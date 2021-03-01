@@ -51,7 +51,7 @@ def estimate_sensible_and_latent(config, data):
 
 
 def make_lumps_chart(config, model_output):
-    fig, ax = plot_radiation_and_ohm()
+    fig, ax = plt.subplots()
     model_ohm, model_rad, model_times, murray = get_modeled_radiation(config)
     data = model_output
     times = data["time"]
@@ -67,8 +67,11 @@ def make_lumps_chart(config, model_output):
     if config.longwave_model:
         ax.plot(times, data["longwave"], 'tab:gray', dashes=[5, 2], label="Modeled Longwave Radiation")
         ax.plot(times, data["net_all_wave"], "tab:orange", dashes=[5, 2], label="All-wave Radiation" )
-        chart_scale = .35
+      #  chart_scale = .35
 
+    tz = pytz.timezone(murray.timezone)
+    ax.xaxis.set_major_locator(dates.HourLocator(interval=2, tz=tz))
+    ax.xaxis.set_major_formatter(dates.DateFormatter('%H', tz=tz))
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -.1), ncol=2)
     plt.subplots_adjust(bottom=chart_scale)
 

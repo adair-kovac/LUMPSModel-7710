@@ -36,7 +36,7 @@ experiments:
         alpha: [0, 1]
         beta: [0, 20]
         number: 10
-      longwave_model: burridge_gadd # not implemented yet
+      longwave_model: burridge_gadd
 
 
 surface_materials:
