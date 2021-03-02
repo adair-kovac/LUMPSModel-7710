@@ -47,7 +47,7 @@ def estimate_sensible_and_latent(config, data):
     storage_column = "storage"
     if "storage_source" in config.experiment:
         storage_column = config.experiment["storage_source"] # used to set it to residual
-    if "tuning_params" in config.penman_monteith_params:
+    if "tuning_params" in config.penman_monteith_params and "disabled" not in config.penman_monteith_params:
         learn_parameters.auto_tune(config, storage_column)
     for index, row in data.iterrows():
         estimate_sensible, estimate_latent = penman_monteith.sensible_and_latent_heat(
@@ -57,7 +57,7 @@ def estimate_sensible_and_latent(config, data):
 
 
 def make_lumps_chart(config, model_output):
-    model_ohm, model_rad, model_times, murray = get_modeled_radiation(config)
+    model_rad, model_times, murray = get_modeled_shortwave_radiation()
     data = model_output
 
     x_axis = data["time"]
@@ -78,7 +78,7 @@ def make_lumps_chart(config, model_output):
             YData(data["net_all_wave"], "All-wave Radiation", styles.allwave.plus(styles.model))
         ])
 
-    if config.experiment["line_chart"]:
+    if "line_chart" in config.experiment:
         keep_columns = config.experiment["line_chart"]["keep_columns"]
         new_y_data = [column for column in y_data if column.name in keep_columns]
         y_data = new_y_data
@@ -109,13 +109,18 @@ def get_modeled_radiation(config):
     # The way this is currently written, it only uses half the available datapoints (because
     # the passed model_output has already downsampled the radiation data to match the lower
     # resolution of the weather data).
-    murray = util.location_util.Location(40.67250, 111.80220, "US/Mountain")  # Mountain Daylight Time is UTC+6
-    model_rad, model_times = get_model_radiation(murray)
+    model_rad, model_times, murray = get_modeled_shortwave_radiation()
     if config.longwave_model == "burridge_gadd":
         model_rad = [x + longwave.burridge_gadd_param for x in model_rad]
 
     model_ohm = ohm.storage_heat_flux(config, np.array(model_rad), time=np.array(model_times))
     return model_ohm, model_rad, model_times, murray
+
+
+def get_modeled_shortwave_radiation():
+    murray = util.location_util.Location(40.67250, 111.80220, "US/Mountain")  # Mountain Daylight Time is UTC+6
+    model_rad, model_times = get_model_radiation(murray)
+    return model_rad, model_times, murray
 
 
 def get_model_radiation(murray):

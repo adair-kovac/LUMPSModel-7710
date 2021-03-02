@@ -20,8 +20,8 @@ class Config:
         conf = self.config
 
         self.experiment_name = conf["active_experiment"]
-        self.output_dir = get_project_root() / conf["output_root_dir"] / str(self.experiment_name)
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.set_output_dir(get_project_root() / conf["output_root_dir"] / str(self.experiment_name))
+
 
         self.experiment = conf["experiments"][self.experiment_name]
 
@@ -30,16 +30,22 @@ class Config:
         if "longwave_model" in self.experiment:
             self.longwave_model = self.experiment["longwave_model"]
 
-        self.load_surface_data(self.experiment["surface_materials_mapping"])
+        if "surface_materials_tuning_params" not in self.experiment:
+            self.load_surface_data(self.experiment["surface_materials_mapping"])
         return self
+
+    def set_output_dir(self, output_dir):
+        self.output_dir = output_dir
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def set_penman_monteith_params(self, experiment):
         params = experiment["penman_monteith_params"]
         if params == "auto_tune":
             self.penman_monteith_params = dict()
-            self.penman_monteith_params["tuning_params"] = experiment["tuning_params"]
         else:
             self.penman_monteith_params = params
+        if "tuning_params" in experiment:
+            self.penman_monteith_params["tuning_params"] = experiment["tuning_params"]
 
     def load_surface_data(self, mapping_name):
         sm_conf = self.config["surface_materials"]

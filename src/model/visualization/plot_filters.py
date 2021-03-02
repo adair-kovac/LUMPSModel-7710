@@ -12,6 +12,7 @@ class Save(BaseFilter):
 
     def apply(self, fig, ax):
         fig.savefig(self.path)
+        plt.close(fig)
 
 
 class TimeFormatXAxis(BaseFilter):
