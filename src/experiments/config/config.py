@@ -4,12 +4,15 @@ from data.util import get_project_root
 
 
 class Config:
-    config = None
-    experiment_name = None
-    penman_monteith_params = None
-    longwave_model = None
-    surface_data = None
-    output_dir = None
+
+    def __init__(self):
+        self.config = None
+        self.experiment_name = None
+        self.penman_monteith_params = None
+        self.longwave_model = None
+        self.surface_data = None
+        self.output_dir = None
+        self.experiment = None
 
     def load(self):
         with open(get_project_root() / "src/experiments/config/config.yaml") as config:
@@ -20,14 +23,14 @@ class Config:
         self.output_dir = get_project_root() / conf["output_root_dir"] / str(self.experiment_name)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        experiment = conf["experiments"][self.experiment_name]
+        self.experiment = conf["experiments"][self.experiment_name]
 
-        self.set_penman_monteith_params(experiment)
+        self.set_penman_monteith_params(self.experiment)
 
-        if "longwave_model" in experiment:
-            self.longwave_model = experiment["longwave_model"]
+        if "longwave_model" in self.experiment:
+            self.longwave_model = self.experiment["longwave_model"]
 
-        self.load_surface_data(experiment["surface_materials_mapping"])
+        self.load_surface_data(self.experiment["surface_materials_mapping"])
         return self
 
     def set_penman_monteith_params(self, experiment):
