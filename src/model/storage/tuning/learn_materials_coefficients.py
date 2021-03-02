@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 from model import lumps
 
+# Given that the penman-monteith equations partition Q_E and Q_H perfectly when given the residual,
+# it would've made more sense to fit the OHM coefficients against the residual directly instead of
+# doing all this.
 
 def get_best_model_output(config):
     iterations = config.experiment["tuning_iterations"]
