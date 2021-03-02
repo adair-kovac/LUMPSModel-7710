@@ -8,25 +8,36 @@ def get_best_model_output(config):
     iterations = config.experiment["tuning_iterations"]
 
     errors = []
+    best_params = None
+    best_materials_coefficients = None
+    best_penman_monteith_params = None
     for i in range(0, iterations):
+        best_params = (best_materials_coefficients, best_penman_monteith_params)
         print("....Starting iteration " + str(i) + "....\n\n\n")
         config.set_output_dir(config.output_dir / str(i))
         config.penman_monteith_params["disabled"] = True
         best_materials_coefficients = get_best_materials_coefficients(config)
+        config.penman_monteith_params.pop("disabled")
         set_materials(config, best_materials_coefficients)
         best_penman_monteith_params, error = get_best_penman_monteith_params(config)
         print("....Iteration " + str(i) + " error: " + str(error) + "....\n\n\n")
-        config.penman_monteith_params.pop("disabled")
         config.penman_monteith_params.update(best_penman_monteith_params)
         print(str(config.surface_data))
         print(str(config.penman_monteith_params))
         config.set_output_dir(config.output_dir.parent)
+        done = False
         if errors and not error < errors[-1]:
-            break
+            done = True
         errors.append(error)
+        if done:
+            break
+        best_params = (best_materials_coefficients, best_penman_monteith_params)
 
     config.set_output_dir(config.output_dir / "best")
-    write_best(config, best_materials_coefficients, best_penman_monteith_params, errors)
+    write_best(config, best_params[0], best_params[1], errors)
+    config.penman_monteith_params.update(best_params[1])
+    set_materials(config, best_params[0])
+    config.penman_monteith_params["disabled"] = True
     model_output = lumps.get_model_output(config)
     model_output.to_csv(config.output_dir / "model_output.csv")
     return model_output

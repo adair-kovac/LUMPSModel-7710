@@ -1,4 +1,4 @@
-active_experiment: 5.1
+active_experiment: 5.0
 output_root_dir: src/experiments/results # The experiment identifier will be a subdir
 
 experiments:
@@ -120,6 +120,48 @@ experiments:
         alpha: [0.3, 1]
         beta: [1, 6]
         number: 10
+      longwave_model: burridge_gadd
+
+    5.2:
+      tuning_iterations: 10
+      surface_materials_tuning_params:
+        a1:
+          range: [0.5, 1]
+          number: 10
+        a2:
+          range: [-0.2, 0.2]
+          number: 5
+        a3:
+          range: [-80, 0]
+          number: 80
+      penman_monteith_params:
+        alpha: 0.6
+        beta: 4.0
+      tuning_params:
+        alpha: [0.35, 0.65]
+        beta: [3.5, 6]
+        number: 5
+      longwave_model: burridge_gadd
+
+    5.0: # Repeating 5 to see if I can replicate
+      tuning_iterations: 3
+      surface_materials_tuning_params:
+        a1:
+          range: [0, 1]
+          number: 5
+        a2:
+          range: [0, 1]
+          number: 5
+        a3:
+          range: [-80, 0]
+          number: 5
+      penman_monteith_params:
+        alpha: 0.536842
+        beta: 5.000000
+      tuning_params:
+        alpha: [0.3, 0.6]
+        beta: [4, 6]
+        number: 3
       longwave_model: burridge_gadd
 
 surface_materials:
