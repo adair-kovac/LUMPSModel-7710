@@ -28,12 +28,13 @@ class TimeFormatXAxis(BaseFilter):
 
 
 class SetBottomLegend(BaseFilter):
-    chart_scale = .30
 
-    def __init__(self, scale_factor=.30):
+    def __init__(self, scale_factor=.30, anchor_start=0.5, anchor_end=-.1):
         self.chart_scale = scale_factor
+        self.anchor_start = anchor_start
+        self.anchor_end = anchor_end
 
     def apply(self, fig, ax):
         chart_scale = .30
-        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -.1), ncol=2)
+        ax.legend(loc='upper center', bbox_to_anchor=(self.anchor_start, self.anchor_end), ncol=2)
         plt.subplots_adjust(bottom=chart_scale)

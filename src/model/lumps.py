@@ -55,6 +55,30 @@ def estimate_sensible_and_latent(config, data):
         data.at[index, "model_sensible"] = estimate_sensible
         data.at[index, "model_latent"] = estimate_latent
 
+def make_pure_observations_chart():
+    data = data_loader.get_energy_balance_data()
+    x_axis = data["time"]
+    y_data = [
+        YData(data["net_solar"], "Net Q_s", styles.observation.plus(styles.shortwave)),
+        YData(data["sensible_heat"], "Observed Sensible Heat", styles.sensible.plus(styles.observation)),
+        YData(data["latent_heat"], "Observed Latent Heat", styles.latent.plus(styles.observation)),
+    ]
+    import model.visualization.plot as plot_base
+    class Format(plot_base.BaseFilter):
+        def apply(self, fig, ax):
+            ax.set_xlabel("Time")
+            ax.set_ylabel("Flux (W/m^2)")
+            ax.set_title("Murray Aug 20, 2005 Observations")
+
+    LinePlot(x_axis, y_data).with_post_filter(
+        TimeFormatXAxis("US/Mountain"),
+        SetBottomLegend(scale_factor=.2, anchor_end=-.2),
+        Format(),
+        Save("observations.png")
+    ).run()
+
+make_pure_observations_chart()
+
 
 def make_lumps_chart(config, model_output):
     model_rad, model_times, murray = get_modeled_shortwave_radiation()
