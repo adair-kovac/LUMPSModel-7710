@@ -16,7 +16,6 @@ from model.visualization import styles
 from model.visualization.plot_filters import Save, SetBottomLegend, TimeFormatXAxis
 from model.visualization.line_plot import LinePlot, YData
 
-
 def get_model_output(config):
     data = data_loader.get_energy_balance_data()
     if config.longwave_model:

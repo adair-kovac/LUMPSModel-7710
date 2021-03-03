@@ -12,7 +12,7 @@ def get_best_model_output(config):
 
     errors = []
     best_params = None
-    best_materials_coefficients = Nonehjnnm
+    best_materials_coefficients = None
     best_penman_monteith_params = None
     for i in range(0, iterations):
         best_params = (best_materials_coefficients, best_penman_monteith_params)
